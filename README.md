@@ -67,6 +67,13 @@ pnpm dev
 
 Check that it works: `curl localhost:3000/api/health` should return `{"ok":true}`. That request goes through the Next rewrite to FastAPI and then to Postgres.
 
+### Use it
+
+- **Candidate:** open one of the links the seed printed, `http://localhost:3000/i/<token>`.
+  - DEMO1–DEMO5 (one per role) start with no answers. The data pack candidates already have theirs.
+  - Lost the links? Run `uv run python -m app.seed` again. It prints the same links, because existing tokens are kept.
+- **HR:** open `http://localhost:3000/hr` and use the **MOCK** "Continue with Google / Facebook" sign-in with any email. Keep the worker running so new answers get scored (about 5 s each).
+
 **Tests:** `cd backend && uv run pytest`. Tests run against `talotrace_test` and never touch the dev database.
 
 ### Local database
