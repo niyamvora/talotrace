@@ -20,6 +20,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
@@ -34,6 +35,8 @@ import {
   type HrAnswer,
 } from "@/lib/api"
 
+import { OverrideDialog } from "./override-dialog"
+
 export function AnswerCard({
   answer,
   onChanged,
@@ -42,20 +45,22 @@ export function AnswerCard({
   onChanged: () => Promise<void>
 }) {
   return (
+    // Fixed-height header, badge row and answer box, and the footer pinned to the bottom, so two cards
+    // side by side line up section for section whatever the question or answer length.
     <Card size="sm" className={cn(!answer.is_current && "opacity-70")}>
       <CardHeader>
-        <CardTitle>
+        <CardTitle className="line-clamp-2 min-h-[2lh]" title={answer.question_text}>
           {answer.question_id}. {answer.question_text}
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="truncate">
           {answer.kind === "audio" ? "Audio" : "Typed"} answer,{" "}
           {formatDateTime(answer.submitted_at)}
           {answer.duration_seconds !== null &&
             `, ${answer.duration_seconds} s`}
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-col gap-3">
-        <div className="flex flex-wrap gap-1.5">
+      <CardContent className="flex flex-1 flex-col gap-3">
+        <div className="flex h-5 gap-1.5">
           {answer.status && <StatusBadge status={answer.status} />}
           {answer.is_current ? (
             <Badge variant="secondary">Counts</Badge>
@@ -65,18 +70,23 @@ export function AnswerCard({
         </div>
 
         {answer.kind === "audio" ? (
-          <audio
-            controls
-            preload="none"
-            src={`/api/hr/answers/${answer.id}/audio`}
-            className="w-full"
-          />
-        ) : answer.text?.trim() ? (
-          <p className="max-h-48 overflow-y-auto rounded-lg border bg-background p-3 whitespace-pre-wrap">
-            {answer.text}
-          </p>
+          <div className="flex h-48 items-center rounded-lg border bg-background p-3">
+            <audio
+              controls
+              preload="none"
+              src={`/api/hr/answers/${answer.id}/audio`}
+              className="w-full"
+            />
+          </div>
         ) : (
-          <p className="text-muted-foreground italic">Empty answer</p>
+          <p
+            className={cn(
+              "h-48 overflow-y-auto rounded-lg border bg-background p-3 whitespace-pre-wrap",
+              !answer.text?.trim() && "text-muted-foreground italic"
+            )}
+          >
+            {answer.text?.trim() ? answer.text : "Empty answer"}
+          </p>
         )}
 
         <Verdict answer={answer} onChanged={onChanged} />
@@ -94,6 +104,11 @@ export function AnswerCard({
           </Alert>
         )}
       </CardContent>
+      {answer.is_current && (
+        <CardFooter className="justify-end">
+          <OverrideDialog answer={answer} onSaved={onChanged} />
+        </CardFooter>
+      )}
     </Card>
   )
 }
