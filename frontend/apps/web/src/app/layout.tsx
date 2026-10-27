@@ -22,7 +22,8 @@ export default function RootLayout({
       suppressHydrationWarning
       className={cn("antialiased", fontMono.variable, "font-sans", geist.variable)}
     >
-      <body>
+      {/* ponytail: extensions (e.g. ColorZilla's cz-shortcut-listen) inject body attrs pre-hydration */}
+      <body suppressHydrationWarning>
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
