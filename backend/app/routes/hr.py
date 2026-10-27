@@ -46,6 +46,7 @@ class CandidateOut(BaseModel):
     id: str
     name: str
     email: str
+    access_token: str  # HR copies the candidate's /i/{token} link from this
     answers: list[AnswerOut]
 
 
@@ -151,6 +152,7 @@ def role_candidates(role_id: int, db: Session = Depends(get_db)) -> RoleCandidat
                 id=c.id,
                 name=c.name,
                 email=c.email,
+                access_token=c.access_token,
                 answers=[
                     answer_out(a)
                     for a in sorted(c.answers, key=lambda a: (int(a.question_id[1:]), a.submitted_at))

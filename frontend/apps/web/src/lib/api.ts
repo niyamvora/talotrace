@@ -50,6 +50,7 @@ export type HrCandidate = {
   id: string
   name: string
   email: string
+  access_token: string
   answers: HrAnswer[]
 }
 

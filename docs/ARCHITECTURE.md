@@ -29,7 +29,7 @@ The rules live in Postgres so that a bug in the API still cannot create a duplic
 | | `POST /api/interview/{token}/answers` | `Idempotency-Key` header. The same key returns the same receipt `{answer_id, received_at}` |
 | | `POST /api/interview/{token}/answers/audio` | `audio/*` only, max 25 MB, stored under a server-generated name |
 | HR sign-in (MOCK) | `POST /api/hr/login` `/logout`, `GET /api/hr/me` | "Continue with Google / Facebook" sends only an email. The API signs it into an httpOnly cookie |
-| HR (cookie required) | `GET /api/hr/roles`, `GET /api/hr/roles/{id}/candidates` | status counts per role, and every answer with its status, which answer counts, the suggestion and any override |
+| HR (cookie required) | `GET /api/hr/roles`, `GET /api/hr/roles/{id}/candidates` | status counts per role, and every answer with its status, which answer counts, the suggestion and any override, plus each candidate's interview link |
 | | `POST /api/hr/answers/{id}/override` | score 1–4 and a required reason. `409` on a superseded answer |
 | | `POST /api/hr/jobs/{id}/retry`, `GET /api/hr/answers/{id}/audio` | retry works only on `failed` or `needs_person` answers. Audio is HR-only |
 

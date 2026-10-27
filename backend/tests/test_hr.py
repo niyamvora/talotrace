@@ -60,6 +60,13 @@ def test_roles_count_current_answers_by_status(hr):
     assert sum(r["counts"]["needs_person"] for r in roles) == 6
 
 
+def test_hr_gets_a_link_that_opens_each_candidates_interview(hr):
+    role_id = hr.get("/api/hr/roles").json()[0]["id"]
+    role = hr.get(f"/api/hr/roles/{role_id}/candidates").json()
+    for c in role["candidates"]:
+        assert hr.get(f"/api/interview/{c['access_token']}").json()["role"] == role["role"]["name"]
+
+
 def test_answers_show_status_and_which_one_counts(hr, db):
     a007 = listed(hr, db, "A007")
     assert a007.keys() == ANSWER_KEYS

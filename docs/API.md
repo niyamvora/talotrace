@@ -121,11 +121,11 @@ All routes need the cookie. Without it they return `401`. A test reads every `/a
 ```json
 {
   "role": { "id": 1, "name": "Backend Engineer" },
-  "candidates": [ { "id": "C2041", "name": "Nhi Van Tran", "email": "...", "answers": [Answer] } ]
+  "candidates": [ { "id": "C2041", "name": "Nhi Van Tran", "email": "...", "access_token": "...", "answers": [Answer] } ]
 }
 ```
 
-`404` means the role is unknown.
+`404` means the role is unknown. `access_token` lets HR copy the candidate's `/i/{token}` link. Only signed-in HR gets it.
 
 **`Answer`:**
 

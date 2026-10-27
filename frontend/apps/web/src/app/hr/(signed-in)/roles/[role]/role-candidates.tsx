@@ -2,7 +2,13 @@
 
 import { Fragment, useState } from "react"
 import Link from "next/link"
-import { ArrowLeftIcon, ChevronRightIcon, SearchXIcon } from "lucide-react"
+import {
+  ArrowLeftIcon,
+  CheckIcon,
+  ChevronRightIcon,
+  LinkIcon,
+  SearchXIcon,
+} from "lucide-react"
 
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -119,6 +125,7 @@ export function RoleCandidates({ roleId }: { roleId: string }) {
                 <TableHead>Answered</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Average score</TableHead>
+                <TableHead className="text-right">Interview link</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -202,10 +209,13 @@ function CandidateRows({
             </>
           )}
         </TableCell>
+        <TableCell className="text-right">
+          <CopyLink token={candidate.access_token} />
+        </TableCell>
       </TableRow>
       {open && (
         <TableRow className="hover:bg-transparent">
-          <TableCell colSpan={5} className="bg-muted/30 p-4 whitespace-normal">
+          <TableCell colSpan={6} className="bg-muted/30 p-4 whitespace-normal">
             <div className="grid gap-3 lg:grid-cols-2">
               {answers.map((a) => (
                 <AnswerCard key={a.id} answer={a} onChanged={onChanged} />
@@ -215,6 +225,35 @@ function CandidateRows({
         </TableRow>
       )}
     </Fragment>
+  )
+}
+
+// Built from the page's own origin, so the link points at whichever host and port HR is using.
+function CopyLink({ token }: { token: string }) {
+  const [copied, setCopied] = useState(false)
+
+  async function copy(e: React.MouseEvent) {
+    e.stopPropagation() // the row click toggles the answers
+    const link = `${window.location.origin}/i/${token}`
+    try {
+      await navigator.clipboard.writeText(link)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // ponytail: clipboard is blocked outside https/localhost; let HR copy it by hand
+      window.prompt("Copy this interview link", link)
+    }
+  }
+
+  return (
+    <Button variant="outline" size="sm" onClick={copy}>
+      {copied ? (
+        <CheckIcon data-icon="inline-start" />
+      ) : (
+        <LinkIcon data-icon="inline-start" />
+      )}
+      {copied ? "Copied" : "Copy link"}
+    </Button>
   )
 }
 
