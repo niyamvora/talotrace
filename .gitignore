@@ -1,0 +1,7 @@
+# frontend/ has its own .gitignore (node_modules, .next, .turbo)
+.DS_Store
+.env
+.venv/
+__pycache__/
+.pytest_cache/
+backend/uploads/
