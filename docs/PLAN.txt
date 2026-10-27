@@ -16,7 +16,7 @@ DECISIONS
   restarts and there is one less service to run.
 - LLM: Anthropic SDK, model claude-opus-5-5 (env SCORER_MODEL). Use client.messages.parse()
   with a Pydantic schema, then validate again on the server before storing.
-- Auth: a candidate gets an unguessable token in their link. HR uses a mocked login (labelled
+- Auth: a candidate gets an unguessable token in their link. HR uses a mocked "Continue with Google / Facebook" login (email only, labelled
   MOCK) that sets an httpOnly cookie. All checks run in the API. Next.js only redirects.
 - Next rewrites /api/* to FastAPI, so both share one origin (no CORS, cookies just work).
 
@@ -36,7 +36,7 @@ STEP 1 - Setup + start recording                     [Brief: Before you start, D
   - git init; folders backend/ frontend/ data/ docs/; .gitignore (.venv node_modules .next uploads .env)
   - unzip the data pack into data/ and commit it (it is synthetic, so a clean clone runs as-is)
   - createdb talotrace_dev + talotrace_test; backend/.env.example
-    (DATABASE_URL, ANTHROPIC_API_KEY, HR_PASSWORD, SECRET_KEY, SCORER_MODEL)
+    (DATABASE_URL, ANTHROPIC_API_KEY, SECRET_KEY, SCORER_MODEL)
   - backend: uv init with fastapi, sqlalchemy, psycopg[binary], anthropic, pydantic-settings, pytest
   - frontend: create-next-app (TS, App Router) + shadcn init
 
@@ -65,7 +65,7 @@ STEP 3 - Seed loader                                 [Brief: The data, What must
   - add 1 fresh demo candidate per role for the live candidate flow; print every candidate link
   - expected result: 35 answers, 28 queued, 6 needs_person, A022 superseded
 
-STEP 4 - API: candidate side                         [Brief: 1, 3, Audio uploads, What must be true]
+STEP 4 - API: candidate side                         [Brief: 1, 3, Audio uploads, What must be true]  [DONE]
   For you: A candidate can only ever touch their own interview. Check that no candidate
   response schema has a score, reason or status field.
   Agent does:
@@ -81,7 +81,7 @@ STEP 4 - API: candidate side                         [Brief: 1, 3, Audio uploads
 STEP 5 - API: HR side + mocked auth                  [Brief: 2, 3, What must be true]
   For you: Permissions must live here, not in the browser. That is the #1 red flag in the brief.
   Agent does:
-  - POST /api/hr/login (MOCK: one password from env) -> signed httpOnly cookie;
+  - POST /api/hr/login {provider: google|facebook, email} (MOCK: no OAuth, no password) -> signed httpOnly cookie;
     a require_hr dependency on EVERY /api/hr/* route
   - GET /api/hr/roles (candidate + status counts); GET /api/hr/roles/{role}/candidates
     (answers, status, suggested score, reason, evidence quote, counts/superseded)

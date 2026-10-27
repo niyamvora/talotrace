@@ -2,7 +2,7 @@
 
 An internal hiring tool where AI suggests a score and HR decides. Candidates answer six interview questions from a personal link. A background worker asks a real language model to score each answer from 1 to 4 against the question's grading guide. HR sees every answer with its suggested score, the reason and an evidence quote, and can override any score with a written reason.
 
-> **Status:** Steps 1–3 of 11 are done (setup, data model, seed loader). The roadmap below tracks the rest.
+> **Status:** Steps 1–4 of 11 are done (setup, data model, seed loader, candidate API). The roadmap below tracks the rest. API contract: [docs/API.md](docs/API.md).
 
 ## Stack
 
@@ -13,7 +13,7 @@ An internal hiring tool where AI suggests a score and HR decides. Candidates ans
 | Scoring | Anthropic SDK, `claude-opus-5-5` (env `SCORER_MODEL`), structured output plus validation on the server |
 | Job queue | A `scoring_jobs` table plus a `python -m app.worker` loop using `FOR UPDATE SKIP LOCKED`. No Redis or Celery, and jobs survive restarts |
 | Frontend | Next.js 16 (App Router, TypeScript, `src/`) with shadcn/ui in a **Turborepo** (pnpm workspaces) |
-| Auth | Candidates use an unguessable token in their link. HR uses a **MOCK** password sign-in that sets a signed httpOnly cookie. All checks run in the API |
+| Auth | Candidates use an unguessable token in their link. HR uses a **MOCK** "Continue with Google / Facebook" sign-in (email only, no password, no real OAuth) that sets a signed httpOnly cookie. All checks run in the API |
 
 Next.js rewrites `/api/*` to FastAPI, so the browser sees a single origin. That means no CORS setup, and the HR cookie works without extra config.
 
@@ -53,7 +53,7 @@ createdb talotrace_test
 
 # 2. Backend (http://localhost:8000)
 cd backend
-cp .env.example .env          # set ANTHROPIC_API_KEY, HR_PASSWORD, SECRET_KEY; edit DATABASE_URL if your Postgres user differs
+cp .env.example .env          # set ANTHROPIC_API_KEY and SECRET_KEY; edit DATABASE_URL if your Postgres user differs
 uv sync
 uv run python -m app.seed     # loads the data pack and prints every candidate link; safe to re-run
 uv run uvicorn app.main:app --reload --port 8000
@@ -75,8 +75,8 @@ Check that it works: `curl localhost:3000/api/health` should return `{"ok":true}
 - [x] **1. Setup:** repo, data pack, databases, uv backend, Turborepo + Next.js + shadcn frontend
 - [x] **2. Data model:** roles, questions, candidates, answers, scoring_jobs, scores, with UNIQUE/CHECK constraints guarding against duplicates and invalid scores
 - [x] **3. Seed loader:** loads the pack in one command and is safe to re-run (35 answers: 28 queued, 6 needs a person, A022 superseded), plus one demo candidate per role
-- [ ] **4. Candidate API:** current question, text answers with an `Idempotency-Key` header, audio upload (audio/* only, max 25 MB), receipts
-- [ ] **5. HR API:** MOCK sign-in, candidates per role, override with a required reason, retry for failed jobs, HR-only audio
+- [x] **4. Candidate API:** current question, text answers with an `Idempotency-Key` header, audio upload (audio/* only, max 25 MB), receipts; submissions are serialized per candidate, so a double click is one answer
+- [ ] **5. HR API:** ~~MOCK sign-in (Google / Facebook, email only)~~ done, `/api/hr/*` gated by a signed cookie; still to do: candidates per role, override with a required reason, retry for failed jobs, HR-only audio
 - [ ] **6. Scorer worker:** real LLM call. The answer is passed as untrusted data, the output is validated, retries use backoff, and a job ends as `failed` or `needs_person`, never as a low score
 - [ ] **7. Candidate UI:** one question at a time, type or upload audio, "Answer received at 14:03", a reload returns to the same question, retry on error
 - [ ] **8. HR UI:** role picker, candidate table, status badges, reason and evidence quote, audio player, override dialog, retry button, polling
@@ -106,5 +106,5 @@ Check that it works: `curl localhost:3000/api/health` should return `{"ok":true}
 
 ## Mocks
 
-- **HR sign-in is MOCK:** one shared password from `HR_PASSWORD`, labelled in the UI.
+- **HR sign-in is MOCK:** "Continue with Google / Facebook" asks only for an email and accepts it. There is no OAuth and no password, and it is labelled MOCK in the UI. The API still signs the identity into an httpOnly cookie and checks it on every `/api/hr/*` route.
 - **The scorer is not mocked.** It always calls the real model. A fake client is used only in tests.

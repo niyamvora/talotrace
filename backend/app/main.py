@@ -4,7 +4,7 @@ from fastapi import Depends, FastAPI
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app import models  # noqa: F401  registers tables on Base.metadata
+from app import auth, models  # noqa: F401  models registers tables on Base.metadata
 from app.db import Base, engine, get_db
 from app.routes import candidate, hr
 
@@ -18,6 +18,7 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(title="TaloTrace API", lifespan=lifespan)
 app.include_router(candidate.router)
+app.include_router(auth.router)
 app.include_router(hr.router)
 
 
