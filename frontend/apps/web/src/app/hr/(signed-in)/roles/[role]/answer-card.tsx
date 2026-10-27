@@ -2,10 +2,14 @@
 
 import { useState } from "react"
 import {
+  CircleCheckIcon,
+  CircleMinusIcon,
   CircleXIcon,
   GavelIcon,
   RotateCwIcon,
+  SparklesIcon,
   UserRoundIcon,
+  type LucideIcon,
 } from "lucide-react"
 
 import {
@@ -24,6 +28,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
+import { Progress } from "@workspace/ui/components/progress"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { cn } from "@workspace/ui/lib/utils"
 
@@ -92,16 +97,13 @@ export function AnswerCard({
         <Verdict answer={answer} onChanged={onChanged} />
 
         {answer.hr_score !== null && (
-          <Alert>
-            <GavelIcon />
-            <AlertTitle>HR score {answer.hr_score} / 4, this counts</AlertTitle>
-            <AlertDescription>
-              <p>{answer.hr_reason}</p>
-              <p className="text-xs">
-                {answer.hr_by}, {answer.hr_at && formatDateTime(answer.hr_at)}
-              </p>
-            </AlertDescription>
-          </Alert>
+          <ScorePanel icon={GavelIcon} label="HR decision · counts" score={answer.hr_score}>
+            <Section label="Reason">{answer.hr_reason}</Section>
+            <p className="text-xs text-muted-foreground">
+              {answer.hr_by}
+              {answer.hr_at && ` · ${formatDateTime(answer.hr_at)}`}
+            </p>
+          </ScorePanel>
         )}
       </CardContent>
       {answer.is_current && (
@@ -124,23 +126,21 @@ function Verdict({
   switch (answer.status) {
     case "scored":
       return (
-        <div className="flex flex-col gap-1.5">
-          <p className="font-medium">
-            AI suggests {answer.ai_score} / 4
-            {answer.hr_score !== null && (
-              <span className="font-normal text-muted-foreground">
-                {" "}
-                (replaced by HR)
-              </span>
-            )}
-          </p>
-          <p className="text-muted-foreground">{answer.ai_reason}</p>
+        <ScorePanel
+          icon={SparklesIcon}
+          label="AI suggestion"
+          score={answer.ai_score!}
+          replaced={answer.hr_score !== null}
+        >
+          <Section label="Why">{answer.ai_reason}</Section>
           {answer.evidence_quote && (
-            <blockquote className="border-l-2 pl-3 italic">
-              “{answer.evidence_quote}”
-            </blockquote>
+            <Section label="Evidence from the answer">
+              <blockquote className="border-l-2 border-primary/40 pl-3 text-muted-foreground italic">
+                “{answer.evidence_quote}”
+              </blockquote>
+            </Section>
           )}
-        </div>
+        </ScorePanel>
       )
     case "failed":
       return (
@@ -223,5 +223,71 @@ function RetryButton({
       )}
       {error ? "Retry failed, try again" : "Retry"}
     </Button>
+  )
+}
+
+// One look at a score: whose it is, the number on a 4-step meter, and whether it meets the bar (3+).
+function ScorePanel({
+  icon: Icon,
+  label,
+  score,
+  replaced = false,
+  children,
+}: {
+  icon: LucideIcon
+  label: string
+  score: number
+  replaced?: boolean
+  children: React.ReactNode
+}) {
+  const meets = score >= 3
+  return (
+    <div className="flex flex-col gap-3 rounded-lg border bg-background p-3">
+      <div className="flex items-center justify-between gap-2">
+        <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+          <Icon className="size-3.5" />
+          {label}
+        </span>
+        {replaced ? (
+          <Badge variant="outline">Replaced by HR</Badge>
+        ) : (
+          <Badge variant={meets ? "secondary" : "outline"}>
+            {meets ? (
+              <CircleCheckIcon data-icon="inline-start" />
+            ) : (
+              <CircleMinusIcon data-icon="inline-start" />
+            )}
+            {meets ? "Meets the bar" : "Below the bar"}
+          </Badge>
+        )}
+      </div>
+      <div className={cn("flex items-center gap-3", replaced && "opacity-50")}>
+        <p className="shrink-0 tabular-nums">
+          <span className="text-2xl font-semibold">{score}</span>
+          <span className="text-muted-foreground"> / 4</span>
+        </p>
+        <Progress
+          value={score * 25}
+          aria-label={`${label}: ${score} out of 4`}
+          className="flex-1"
+        />
+      </div>
+      {children}
+    </div>
+  )
+}
+
+function Section({
+  label,
+  children,
+}: {
+  label: string
+  children: React.ReactNode
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-xs font-medium text-muted-foreground">{label}</span>
+      <div className="leading-relaxed">{children}</div>
+    </div>
   )
 }
