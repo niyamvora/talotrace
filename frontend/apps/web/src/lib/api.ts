@@ -95,6 +95,13 @@ export function errorMessage(error: unknown) {
     : "Could not reach the server. Check your connection."
 }
 
+export function formatDateTime(iso: string) {
+  return new Date(iso).toLocaleString([], {
+    dateStyle: "medium",
+    timeStyle: "short",
+  })
+}
+
 export function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString([], {
     hour: "2-digit",
