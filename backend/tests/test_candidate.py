@@ -46,6 +46,19 @@ def test_same_key_twice_is_one_answer_and_one_job(client, db, url):
     assert first.status_code == 200 and again.json() == first.json()
     assert first.json().keys() == {"answer_id", "received_at"}
     assert db.scalar(select(func.count()).select_from(Answer).where(Answer.candidate_id == "DEMO1")) == 1
+    jobs = select(func.count()).select_from(ScoringJob).join(Answer).where(Answer.candidate_id == "DEMO1")
+    assert db.scalar(jobs) == 1
+
+
+def test_a_token_only_ever_sees_its_own_interview(client, db, url):
+    other = f"/api/interview/{db.get(Candidate, 'DEMO2').access_token}"
+    mine = answer_text(client, url, "k1").json()
+
+    me, them = client.get(url).json(), client.get(other).json()
+    assert (me["role"], me["answered"]) == ("Backend Engineer", 1)
+    assert (them["role"], them["answered"]) == ("Sales Executive", 0)  # DEMO1's answer is invisible here
+    # The same key under another token is that candidate's own submission, never DEMO1's receipt.
+    assert answer_text(client, other, "k1").json()["answer_id"] != mine["answer_id"]
 
 
 def test_a_new_answer_supersedes_the_old_one(client, db, url):

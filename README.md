@@ -2,7 +2,7 @@
 
 An internal hiring tool where AI suggests a score and HR decides. Candidates answer six interview questions from a personal link. A background worker asks a real language model to score each answer from 1 to 4 against the question's grading guide. HR sees every answer with its suggested score, the reason and an evidence quote, and can override any score with a written reason.
 
-> **Status:** Backend steps 1–6 of 11 are done (setup, data model, seed loader, candidate API, HR API, scoring worker). The roadmap below tracks the rest. API contract: [docs/API.md](docs/API.md).
+> **Status:** Steps 1–10 of 11 are done; step 11 (clean-clone check and live walkthrough) remains. Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). API contract: [docs/API.md](docs/API.md).
 
 ## Stack
 
@@ -90,10 +90,10 @@ Both connection strings live in `backend/.env`. The defaults assume a local Post
 - [x] **4. Candidate API:** current question, text answers with an `Idempotency-Key` header, audio upload (audio/* only, max 25 MB), receipts; submissions are serialized per candidate, so a double click is one answer
 - [x] **5. HR API:** MOCK sign-in (Google / Facebook, email only), role list with status counts, candidates per role with every answer, override with a required reason, retry for failed / needs-a-person, HR-only audio. A failed answer never shows a number
 - [x] **6. Scorer worker:** real LLM call. The answer is passed as untrusted data, the output is validated, retries use backoff, and a job ends as `failed` or `needs_person`, never as a low score
-- [ ] **7. Candidate UI:** one question at a time, type or upload audio, "Answer received at 14:03", a reload returns to the same question, retry on error
-- [ ] **8. HR UI:** role picker, candidate table, status badges, reason and evidence quote, audio player, override dialog, retry button, polling
-- [ ] **9. Tests:** one test for each rule below, using a fake LLM client
-- [ ] **10. Docs:** final README plus `docs/ARCHITECTURE.md` (data model, endpoints, submission-to-score flow, what was left out)
+- [x] **7. Candidate UI:** one question at a time, type or upload audio, "Answer received at 14:03", a reload returns to the same question, retry on error
+- [x] **8. HR UI:** role picker, candidate table, status badges, reason and evidence quote, audio player, override dialog, retry button, polling
+- [x] **9. Tests:** one or more tests for each rule below, using a fake LLM client (31 tests). The live check that A019 is not scored 4 and is flagged as an injection was run by hand against the real model
+- [x] **10. Docs:** this README plus [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) (data model, endpoints, submission-to-score flow, what was left out)
 - [ ] **11. Verify:** fresh clone, follow this README, seed, worker scores everything, live walkthrough
 
 **Optional, only once the steps above work:** an agreement report against `hr_reference_scores.csv`, a "needs a person" list, a candidate list ordered for review, mocked transcripts for the audio-only answers (labelled MOCK).

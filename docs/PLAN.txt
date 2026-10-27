@@ -107,7 +107,7 @@ STEP 6 - Scorer worker with a real LLM               [Brief: 4, What must be tru
   - write the score and the "scored" status in one transaction; pass the LLM client in so tests can
     use a fake
 
-STEP 7 - Candidate UI (Next.js + shadcn)             [Brief: 1, Optional extras]
+STEP 7 - Candidate UI (Next.js + shadcn)             [Brief: 1, Optional extras]  [DONE]
   For you: Keep it plain; they grade clarity, not polish. Try a double click and a reload
   yourself.
   Agent does:
@@ -119,7 +119,7 @@ STEP 7 - Candidate UI (Next.js + shadcn)             [Brief: 1, Optional extras]
     resumes from API state
   - on an error, show an Alert with a Retry button that resends the same key; when done, show "All 6 received"
 
-STEP 8 - HR UI                                       [Brief: 2, 4 statuses, Optional extras]
+STEP 8 - HR UI                                       [Brief: 2, 4 statuses, Optional extras]  [DONE]
   For you: Ask yourself whether HR would actually decide faster with this. Each answer's status
   must be clear at a glance.
   Agent does:
@@ -130,7 +130,7 @@ STEP 8 - HR UI                                       [Brief: 2, 4 statuses, Opti
   - Override Dialog (Select 1-4 + required Textarea); Retry button on failed;
     poll every 5 s while any job is queued or running
 
-STEP 9 - Tests                                       [Brief: 4 "fake in tests", What must be true]
+STEP 9 - Tests                                       [Brief: 4 "fake in tests", What must be true]  [DONE]
   For you: Write one test per "what must be true" line. They are your proof in the walkthrough.
   Agent does (pytest + FastAPI TestClient + fake LLM client, on talotrace_test):
   - submitting twice with the same key -> 1 answer, 1 job
@@ -142,7 +142,7 @@ STEP 9 - Tests                                       [Brief: 4 "fake in tests", 
   - seed counts match STEP 3
   - live smoke script (manual, real key): score A019 -> not 4, flagged injection_attempt
 
-STEP 10 - README + architecture note                 [Brief: Deliverables]
+STEP 10 - README + architecture note                 [Brief: Deliverables]  [DONE]
   For you: Afterwards, follow the README on a fresh clone yourself. "The README does not run"
   is a red flag.
   Agent does:
