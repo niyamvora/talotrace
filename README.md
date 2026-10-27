@@ -2,7 +2,7 @@
 
 An internal hiring tool where AI suggests a score and HR decides. Candidates answer six interview questions from a personal link. A background worker asks a real language model to score each answer from 1 to 4 against the question's grading guide. HR sees every answer with its suggested score, the reason and an evidence quote, and can override any score with a written reason.
 
-> **Status:** Step 1 of 11 (project setup) is done. The roadmap below tracks the rest.
+> **Status:** Steps 1–3 of 11 are done (setup, data model, seed loader). The roadmap below tracks the rest.
 
 ## Stack
 
@@ -55,6 +55,7 @@ createdb talotrace_test
 cd backend
 cp .env.example .env          # set ANTHROPIC_API_KEY, HR_PASSWORD, SECRET_KEY; edit DATABASE_URL if your Postgres user differs
 uv sync
+uv run python -m app.seed     # loads the data pack and prints every candidate link; safe to re-run
 uv run uvicorn app.main:app --reload --port 8000
 
 # 3. Frontend (http://localhost:3000), in a second terminal
@@ -67,13 +68,13 @@ Check that it works: `curl localhost:3000/api/health` should return `{"ok":true}
 
 **Tests:** `cd backend && uv run pytest`. Tests run against `talotrace_test` and never touch the dev database.
 
-**Coming in later steps:** `uv run python -m app.seed` (load the data pack) and `uv run python -m app.worker` (the scorer).
+**Coming in a later step:** `uv run python -m app.worker` (the scorer).
 
 ## Roadmap
 
 - [x] **1. Setup:** repo, data pack, databases, uv backend, Turborepo + Next.js + shadcn frontend
-- [ ] **2. Data model:** roles, questions, candidates, answers, scoring_jobs, scores, with UNIQUE/CHECK constraints guarding against duplicates and invalid scores
-- [ ] **3. Seed loader:** loads the pack in one command and is safe to re-run (35 answers: 28 queued, 6 needs a person, A022 superseded)
+- [x] **2. Data model:** roles, questions, candidates, answers, scoring_jobs, scores, with UNIQUE/CHECK constraints guarding against duplicates and invalid scores
+- [x] **3. Seed loader:** loads the pack in one command and is safe to re-run (35 answers: 28 queued, 6 needs a person, A022 superseded), plus one demo candidate per role
 - [ ] **4. Candidate API:** current question, text answers with an `Idempotency-Key` header, audio upload (audio/* only, max 25 MB), receipts
 - [ ] **5. HR API:** MOCK sign-in, candidates per role, override with a required reason, retry for failed jobs, HR-only audio
 - [ ] **6. Scorer worker:** real LLM call. The answer is passed as untrusted data, the output is validated, retries use backoff, and a job ends as `failed` or `needs_person`, never as a low score

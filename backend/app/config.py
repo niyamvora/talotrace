@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     # No defaults on purpose: the app refuses to start without them.
     hr_password: str
     secret_key: str
+    web_url: str = "http://localhost:3000"  # base of the candidate links the seed prints
     data_dir: Path = BACKEND_DIR.parent / "data"
     uploads_dir: Path = BACKEND_DIR / "uploads"
 

@@ -29,7 +29,7 @@ DATA PACK FACTS (test cases the brief planted)
 - hr_reference_scores.csv holds HR's scores for 10 answers, for the optional agreement report.
 
 --------------------------------------------------------------------------------------
-STEP 1 - Setup + start recording                     [Brief: Before you start, Deliverables]
+STEP 1 - Setup + start recording                     [Brief: Before you start, Deliverables]  [DONE]
   For you: Start the Zoom recording (screen and face) BEFORE this step. They grade how you plan
   and steer the agent, so show this plan on camera and hand it to the agent.
   Agent does:
@@ -40,7 +40,7 @@ STEP 1 - Setup + start recording                     [Brief: Before you start, D
   - backend: uv init with fastapi, sqlalchemy, psycopg[binary], anthropic, pydantic-settings, pytest
   - frontend: create-next-app (TS, App Router) + shadcn init
 
-STEP 2 - Data model                                  [Brief: 3, What must be true]
+STEP 2 - Data model                                  [Brief: 3, What must be true]  [DONE]
   For you: This is where reliability lives, and it is the part you will be asked to explain.
   Review every constraint yourself before moving on.
   Agent does:
@@ -53,7 +53,7 @@ STEP 2 - Data model                                  [Brief: 3, What must be tru
   - UNIQUE(candidate_id, idempotency_key); partial UNIQUE(candidate_id, question_id) WHERE is_current
   - CHECK scores BETWEEN 1 AND 4; CHECK (hr_score IS NULL OR length(hr_reason) > 0)
 
-STEP 3 - Seed loader                                 [Brief: The data, What must be true]
+STEP 3 - Seed loader                                 [Brief: The data, What must be true]  [DONE]
   For you: One command loads the pack, so the reviewers and your walkthrough use real data.
   Re-running it must not create duplicates.
   Agent does:

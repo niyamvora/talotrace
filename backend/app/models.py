@@ -98,6 +98,15 @@ class ScoringJob(Base):
     answer: Mapped[Answer] = relationship(back_populates="job")
 
 
+def initial_job(answer: Answer) -> ScoringJob:
+    """The job a new answer starts with. Audio and empty answers go to a person, never to the model."""
+    if answer.kind == "audio":
+        return ScoringJob(status="needs_person", needs_person_reason="audio received, not transcribed")
+    if not answer.text.strip():
+        return ScoringJob(status="needs_person", needs_person_reason="empty answer")
+    return ScoringJob(status="queued")
+
+
 class Score(Base):
     """The AI suggestion and HR's decision for one answer. When HR has scored it, HR's score counts."""
 
