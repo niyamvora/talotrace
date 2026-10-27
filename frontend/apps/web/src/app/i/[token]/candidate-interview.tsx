@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useState } from "react"
 import { CircleAlertIcon, CircleCheckIcon, LinkIcon } from "lucide-react"
 
 import {
@@ -43,6 +43,8 @@ import {
 } from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
 
+import { LoadError } from "@/components/load-error"
+import { useApi } from "@/hooks/use-api"
 import {
   api,
   ApiError,
@@ -55,23 +57,13 @@ import {
 const MAX_AUDIO_BYTES = 25 * 1024 * 1024 // same limit the API enforces
 
 export function CandidateInterview({ token }: { token: string }) {
-  const [interview, setInterview] = useState<Interview | null>(null)
-  const [loadError, setLoadError] = useState<unknown>(null)
-  const [receipt, setReceipt] = useState<Receipt | null>(null)
-
   // The API is the source of truth for where the candidate is, so a reload resumes at the same question.
-  const load = useCallback(async () => {
-    try {
-      setInterview(await api<Interview>(`/api/interview/${token}`))
-      setLoadError(null)
-    } catch (error) {
-      setLoadError(error)
-    }
-  }, [token])
-
-  useEffect(() => {
-    load()
-  }, [load])
+  const {
+    data: interview,
+    error: loadError,
+    load,
+  } = useApi<Interview>(`/api/interview/${token}`)
+  const [receipt, setReceipt] = useState<Receipt | null>(null)
 
   if (loadError instanceof ApiError && loadError.status === 404) {
     return (
@@ -91,16 +83,13 @@ export function CandidateInterview({ token }: { token: string }) {
 
   if (!interview) {
     return loadError ? (
-      <Alert variant="destructive" className="mx-auto max-w-2xl">
-        <CircleAlertIcon />
-        <AlertTitle>Could not load your interview</AlertTitle>
-        <AlertDescription>{errorMessage(loadError)}</AlertDescription>
-        <AlertAction>
-          <Button size="sm" variant="outline" onClick={load}>
-            Retry
-          </Button>
-        </AlertAction>
-      </Alert>
+      <div className="mx-auto max-w-2xl">
+        <LoadError
+          title="Could not load your interview"
+          error={loadError}
+          onRetry={load}
+        />
+      </div>
     ) : (
       <Skeleton className="mx-auto h-80 max-w-2xl" />
     )
