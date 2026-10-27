@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=BACKEND_DIR / ".env", extra="ignore")
 
     database_url: str = "postgresql+psycopg://postgres@localhost:5432/talotrace_dev"
+    test_database_url: str = "postgresql+psycopg://postgres@localhost:5432/talotrace_test"
     anthropic_api_key: str = ""
     scorer_model: str = "claude-opus-5-5"
     secret_key: str  # signs the HR cookie; no default on purpose, the app refuses to start without it

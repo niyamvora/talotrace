@@ -11,8 +11,9 @@ This is what the frontend codes against. The backend (FastAPI) owns all data, ru
 | Area | Status |
 |---|---|
 | Candidate API | **live** (Step 4) |
-| HR sign-in (mock Google / Facebook) | **live** (Step 5, part 1) |
-| HR data, override, retry, audio | contract fixed, building next (Step 5) |
+| HR sign-in (mock Google / Facebook) | **live** (Step 5) |
+| HR data, override, retry, audio | **live** (Step 5) |
+| Scoring worker (fills `scored` / `failed`) | next (Step 6). Until then every typed answer stays `queued` |
 
 ---
 
@@ -100,9 +101,9 @@ There is no real OAuth and no password. The flow should *feel* like a social sig
 
 ---
 
-## HR data (Step 5, next)
+## HR data
 
-All routes need the cookie. Without it they return `401`.
+All routes need the cookie. Without it they return `401`. A test reads every `/api/hr` route from the app's OpenAPI schema and fails if any of them is reachable without sign-in.
 
 ### `GET /api/hr/roles`
 
@@ -158,13 +159,25 @@ All routes need the cookie. Without it they return `401`.
 
 ### `POST /api/hr/jobs/{answer_id}/retry`
 
-- **Response `200`:** the updated `Answer`, now `queued`.
-- `409` unless the status is `failed` or `needs_person`.
+- **Response `200`:** the updated `Answer`, now `queued`. `attempts` resets to 0, and `last_error` and `needs_person_reason` are cleared.
+- `409` unless the answer counts and its status is `failed` or `needs_person`.
 - `404`: unknown answer.
 
 ### `GET /api/hr/answers/{answer_id}/audio`
 
-Returns the audio file, which can go straight into `<audio src>` since the cookie is sent with it. `404` if the answer has no audio.
+Returns the audio file, which can go straight into `<audio src>` since the cookie is sent with it. `.m4a` files are served as `audio/mp4`. `404` if the answer has no audio.
+
+### Seeded data you can expect (`python -m app.seed`)
+
+| Role id | Role | Candidates | Queued | Needs a person |
+|---|---|---|---|---|
+| 1 | Backend Engineer | 5 | 6 | 2 (A031, A032 audio) |
+| 2 | Sales Executive | 5 | 5 | 2 (A033, A034 audio) |
+| 3 | Customer Success Associate | 4 | 6 | 0 |
+| 4 | Marketing Coordinator | 4 | 5 | 1 (A007 empty answer) |
+| 5 | Finance Analyst | 5 | 6 | 1 (A035 audio) |
+
+Each role includes one demo candidate (`DEMO1`-`DEMO5`) with no answers. C2052 (Sales Executive) shows A022 as superseded and A023 as the answer that counts.
 
 ### Polling
 

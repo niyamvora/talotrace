@@ -2,7 +2,7 @@
 
 An internal hiring tool where AI suggests a score and HR decides. Candidates answer six interview questions from a personal link. A background worker asks a real language model to score each answer from 1 to 4 against the question's grading guide. HR sees every answer with its suggested score, the reason and an evidence quote, and can override any score with a written reason.
 
-> **Status:** Steps 1–4 of 11 are done (setup, data model, seed loader, candidate API). The roadmap below tracks the rest. API contract: [docs/API.md](docs/API.md).
+> **Status:** Backend steps 1–5 of 11 are done (setup, data model, seed loader, candidate API, HR API). The roadmap below tracks the rest. API contract: [docs/API.md](docs/API.md).
 
 ## Stack
 
@@ -53,7 +53,7 @@ createdb talotrace_test
 
 # 2. Backend (http://localhost:8000)
 cd backend
-cp .env.example .env          # set ANTHROPIC_API_KEY and SECRET_KEY; edit DATABASE_URL if your Postgres user differs
+cp .env.example .env          # set ANTHROPIC_API_KEY and SECRET_KEY; edit the two DB URLs if your Postgres user/password differ
 uv sync
 uv run python -m app.seed     # loads the data pack and prints every candidate link; safe to re-run
 uv run uvicorn app.main:app --reload --port 8000
@@ -68,6 +68,19 @@ Check that it works: `curl localhost:3000/api/health` should return `{"ok":true}
 
 **Tests:** `cd backend && uv run pytest`. Tests run against `talotrace_test` and never touch the dev database.
 
+### Local database
+
+Both connection strings live in `backend/.env`. The defaults assume a local Postgres with a `postgres` user and no password.
+
+| Database | `.env` key | Used by |
+|---|---|---|
+| `talotrace_dev` | `DATABASE_URL` | the API, the seed, the worker |
+| `talotrace_test` | `TEST_DATABASE_URL` | pytest only. Every table is dropped and recreated on each run, so pytest refuses to start if the two URLs are the same |
+
+- **Tables** are created when the API starts and when the seed runs. There are no migrations yet.
+- **Inspect the data:** `psql postgresql://postgres@localhost:5432/talotrace_dev`
+- **Start over:** `dropdb talotrace_dev && createdb talotrace_dev && uv run python -m app.seed`. This prints new candidate links.
+
 **Coming in a later step:** `uv run python -m app.worker` (the scorer).
 
 ## Roadmap
@@ -76,7 +89,7 @@ Check that it works: `curl localhost:3000/api/health` should return `{"ok":true}
 - [x] **2. Data model:** roles, questions, candidates, answers, scoring_jobs, scores, with UNIQUE/CHECK constraints guarding against duplicates and invalid scores
 - [x] **3. Seed loader:** loads the pack in one command and is safe to re-run (35 answers: 28 queued, 6 needs a person, A022 superseded), plus one demo candidate per role
 - [x] **4. Candidate API:** current question, text answers with an `Idempotency-Key` header, audio upload (audio/* only, max 25 MB), receipts; submissions are serialized per candidate, so a double click is one answer
-- [ ] **5. HR API:** ~~MOCK sign-in (Google / Facebook, email only)~~ done, `/api/hr/*` gated by a signed cookie; still to do: candidates per role, override with a required reason, retry for failed jobs, HR-only audio
+- [x] **5. HR API:** MOCK sign-in (Google / Facebook, email only), role list with status counts, candidates per role with every answer, override with a required reason, retry for failed / needs-a-person, HR-only audio. A failed answer never shows a number
 - [ ] **6. Scorer worker:** real LLM call. The answer is passed as untrusted data, the output is validated, retries use backoff, and a job ends as `failed` or `needs_person`, never as a low score
 - [ ] **7. Candidate UI:** one question at a time, type or upload audio, "Answer received at 14:03", a reload returns to the same question, retry on error
 - [ ] **8. HR UI:** role picker, candidate table, status badges, reason and evidence quote, audio player, override dialog, retry button, polling

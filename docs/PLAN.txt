@@ -78,7 +78,7 @@ STEP 4 - API: candidate side                         [Brief: 1, 3, Audio uploads
     old one (cancel its job if still queued)
   - unknown token -> 404
 
-STEP 5 - API: HR side + mocked auth                  [Brief: 2, 3, What must be true]
+STEP 5 - API: HR side + mocked auth                  [Brief: 2, 3, What must be true]  [DONE]
   For you: Permissions must live here, not in the browser. That is the #1 red flag in the brief.
   Agent does:
   - POST /api/hr/login {provider: google|facebook, email} (MOCK: no OAuth, no password) -> signed httpOnly cookie;

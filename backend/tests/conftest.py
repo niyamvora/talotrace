@@ -1,9 +1,9 @@
-import os
+from app.config import settings
 
-# Tests never touch the dev database. Must run before anything imports app.config.
-os.environ["DATABASE_URL"] = os.environ.get(
-    "TEST_DATABASE_URL", "postgresql+psycopg://postgres@localhost:5432/talotrace_test"
-)
+# Tests never touch the dev database. Must run before app.db creates the engine.
+if settings.test_database_url == settings.database_url:
+    raise RuntimeError("TEST_DATABASE_URL must differ from DATABASE_URL: tests drop and recreate every table")
+settings.database_url = settings.test_database_url
 
 import pytest  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
