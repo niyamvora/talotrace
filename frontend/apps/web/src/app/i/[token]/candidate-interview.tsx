@@ -223,7 +223,7 @@ function QuestionCard({
               </FieldLabel>
               <Textarea
                 id="answer-text"
-                rows={8}
+                className="min-h-40"
                 placeholder="Type your answer…"
                 value={text}
                 disabled={pending}
