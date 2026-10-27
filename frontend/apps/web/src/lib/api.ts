@@ -13,6 +13,10 @@ export type Interview = {
 
 export type Receipt = { answer_id: number; received_at: string }
 
+export type Provider = "google" | "facebook"
+
+export type HrUser = { email: string; provider: Provider }
+
 export type RoleSummary = {
   id: number
   name: string
