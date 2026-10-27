@@ -64,6 +64,9 @@ export function MockProvider({ provider }: { provider: Provider }) {
     <Card className="mx-auto max-w-sm">
       <CardHeader className="items-center text-center">
         <Logo className="mx-auto mb-2 size-10" />
+        <Badge variant="outline" className="mx-auto mb-2">
+          MOCK: not a real {name} sign-in
+        </Badge>
         {step === "email" ? (
           <>
             <CardTitle className="text-xl">Sign in with {name}</CardTitle>
@@ -106,8 +109,7 @@ export function MockProvider({ provider }: { provider: Provider }) {
                   onChange={(e) => setEmail(e.target.value)}
                 />
                 <FieldDescription>
-                  MOCK: any email works. No password, and nothing is sent to{" "}
-                  {name}.
+                  Any email works. No password, and nothing is sent to {name}.
                 </FieldDescription>
               </Field>
             </FieldGroup>
