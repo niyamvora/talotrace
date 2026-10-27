@@ -13,7 +13,7 @@ This is what the frontend codes against. The backend (FastAPI) owns all data, ru
 | Candidate API | **live** (Step 4) |
 | HR sign-in (mock Google / Facebook) | **live** (Step 5) |
 | HR data, override, retry, audio | **live** (Step 5) |
-| Scoring worker (fills `scored` / `failed`) | next (Step 6). Until then every typed answer stays `queued` |
+| Scoring worker (`python -m app.worker`) | **live** (Step 6). Answers move out of `queued` only while the worker runs |
 
 ---
 
@@ -182,3 +182,20 @@ Each role includes one demo candidate (`DEMO1`-`DEMO5`) with no answers. C2052 (
 ### Polling
 
 While any answer is `queued` or `running`, re-fetch the candidates endpoint every 5 seconds.
+
+### How a status changes (the worker)
+
+```
+submitted ── typed, not empty ──> queued ── worker claims ──> running ──┬──> scored        (ai_* shown)
+          └─ empty or audio ────> needs_person                          ├──> needs_person  (reason shown, no number)
+                                                                        └──> failed        (last_error shown, no number)
+HR retry: failed | needs_person ──> queued
+```
+
+| Outcome | When | What HR sees |
+|---|---|---|
+| `scored` | The model returned a valid score. The server checked it: 1-4, non-empty reason, and the evidence quote appears in the answer | `ai_score`, `ai_reason`, `evidence_quote` |
+| `needs_person` | The answer is empty, is audio only, or tried to instruct the scorer (prompt injection), or the model declined or was cut off | `needs_person_reason`, e.g. `possible prompt injection: the answer tries to instruct the scorer` |
+| `failed` | API error after retries, or output that failed our checks | `last_error`, e.g. `model output rejected: the evidence quote does not appear in the answer` |
+
+A scoring call takes about 5 seconds.

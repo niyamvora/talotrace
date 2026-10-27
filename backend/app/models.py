@@ -98,13 +98,19 @@ class ScoringJob(Base):
     answer: Mapped[Answer] = relationship(back_populates="job")
 
 
-def initial_job(answer: Answer) -> ScoringJob:
-    """The job a new answer starts with. Audio and empty answers go to a person, never to the model."""
+def person_reason(answer: Answer) -> str | None:
+    """Why an answer must go to a person without ever reaching the model, or None if it can be scored."""
     if answer.kind == "audio":
-        return ScoringJob(status="needs_person", needs_person_reason="audio received, not transcribed")
+        return "audio received, not transcribed"
     if not answer.text.strip():
-        return ScoringJob(status="needs_person", needs_person_reason="empty answer")
-    return ScoringJob(status="queued")
+        return "empty answer"
+    return None
+
+
+def initial_job(answer: Answer) -> ScoringJob:
+    """The job a new answer starts with."""
+    reason = person_reason(answer)
+    return ScoringJob(status="needs_person", needs_person_reason=reason) if reason else ScoringJob(status="queued")
 
 
 class Score(Base):

@@ -2,7 +2,7 @@
 
 An internal hiring tool where AI suggests a score and HR decides. Candidates answer six interview questions from a personal link. A background worker asks a real language model to score each answer from 1 to 4 against the question's grading guide. HR sees every answer with its suggested score, the reason and an evidence quote, and can override any score with a written reason.
 
-> **Status:** Backend steps 1–5 of 11 are done (setup, data model, seed loader, candidate API, HR API). The roadmap below tracks the rest. API contract: [docs/API.md](docs/API.md).
+> **Status:** Backend steps 1–6 of 11 are done (setup, data model, seed loader, candidate API, HR API, scoring worker). The roadmap below tracks the rest. API contract: [docs/API.md](docs/API.md).
 
 ## Stack
 
@@ -10,7 +10,7 @@ An internal hiring tool where AI suggests a score and HR decides. Candidates ans
 |---|---|
 | Backend | Python 3.12, FastAPI, SQLAlchemy 2.0 (typed `Mapped[]`), psycopg 3, pydantic-settings, managed with **uv** |
 | Database | PostgreSQL 17 (`talotrace_dev` for the app, `talotrace_test` for pytest) |
-| Scoring | Anthropic SDK, `claude-opus-5-5` (env `SCORER_MODEL`), structured output plus validation on the server |
+| Scoring | Anthropic SDK, `claude-opus-5-5` (env `SCORER_MODEL`): structured output (Pydantic schema), then our own checks (score 1–4, non-empty reason, evidence quote really in the answer). Refusals fall back server-side to Anthropic's recommended model |
 | Job queue | A `scoring_jobs` table plus a `python -m app.worker` loop using `FOR UPDATE SKIP LOCKED`. No Redis or Celery, and jobs survive restarts |
 | Frontend | Next.js 16 (App Router, TypeScript, `src/`) with shadcn/ui in a **Turborepo** (pnpm workspaces) |
 | Auth | Candidates use an unguessable token in their link. HR uses a **MOCK** "Continue with Google / Facebook" sign-in (email only, no password, no real OAuth) that sets a signed httpOnly cookie. All checks run in the API |
@@ -57,6 +57,7 @@ cp .env.example .env          # set ANTHROPIC_API_KEY and SECRET_KEY; edit the t
 uv sync
 uv run python -m app.seed     # loads the data pack and prints every candidate link; safe to re-run
 uv run uvicorn app.main:app --reload --port 8000
+uv run python -m app.worker   # in another terminal: scores queued answers with the real model; Ctrl+C stops after the current one
 
 # 3. Frontend (http://localhost:3000), in a second terminal
 cd frontend
@@ -81,8 +82,6 @@ Both connection strings live in `backend/.env`. The defaults assume a local Post
 - **Inspect the data:** `psql postgresql://postgres@localhost:5432/talotrace_dev`
 - **Start over:** `dropdb talotrace_dev && createdb talotrace_dev && uv run python -m app.seed`. This prints new candidate links.
 
-**Coming in a later step:** `uv run python -m app.worker` (the scorer).
-
 ## Roadmap
 
 - [x] **1. Setup:** repo, data pack, databases, uv backend, Turborepo + Next.js + shadcn frontend
@@ -90,7 +89,7 @@ Both connection strings live in `backend/.env`. The defaults assume a local Post
 - [x] **3. Seed loader:** loads the pack in one command and is safe to re-run (35 answers: 28 queued, 6 needs a person, A022 superseded), plus one demo candidate per role
 - [x] **4. Candidate API:** current question, text answers with an `Idempotency-Key` header, audio upload (audio/* only, max 25 MB), receipts; submissions are serialized per candidate, so a double click is one answer
 - [x] **5. HR API:** MOCK sign-in (Google / Facebook, email only), role list with status counts, candidates per role with every answer, override with a required reason, retry for failed / needs-a-person, HR-only audio. A failed answer never shows a number
-- [ ] **6. Scorer worker:** real LLM call. The answer is passed as untrusted data, the output is validated, retries use backoff, and a job ends as `failed` or `needs_person`, never as a low score
+- [x] **6. Scorer worker:** real LLM call. The answer is passed as untrusted data, the output is validated, retries use backoff, and a job ends as `failed` or `needs_person`, never as a low score
 - [ ] **7. Candidate UI:** one question at a time, type or upload audio, "Answer received at 14:03", a reload returns to the same question, retry on error
 - [ ] **8. HR UI:** role picker, candidate table, status badges, reason and evidence quote, audio player, override dialog, retry button, polling
 - [ ] **9. Tests:** one test for each rule below, using a fake LLM client

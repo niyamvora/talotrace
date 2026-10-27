@@ -90,7 +90,7 @@ STEP 5 - API: HR side + mocked auth                  [Brief: 2, 3, What must be 
   - GET /api/hr/answers/{id}/audio (HR only)
   - a failed or needs_person answer returns score null plus the error/reason, NEVER a number
 
-STEP 6 - Scorer worker with a real LLM               [Brief: 4, What must be true]
+STEP 6 - Scorer worker with a real LLM               [Brief: 4, What must be true]  [DONE]
   For you: The brief weighs this most. Read the prompt and the validation line by line, and have
   the agent walk you through each failure path.
   Agent does:
