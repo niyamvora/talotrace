@@ -162,7 +162,8 @@ function Verdict({
           <UserRoundIcon />
           <AlertTitle>Needs a person</AlertTitle>
           <AlertDescription className="first-letter:uppercase">
-            {answer.needs_person_reason}. Score it yourself with Override.
+            {answer.needs_person_reason}.
+            {answer.hr_score === null && " Score it yourself with Override."}
           </AlertDescription>
         </Alert>
       )
